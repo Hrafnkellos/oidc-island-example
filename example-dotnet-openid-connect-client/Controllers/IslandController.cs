@@ -14,33 +14,35 @@
  * limitations under the License.
  */
 
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using static System.Convert;
 
 namespace exampledotnetopenidconnectclient.Controllers
 {
-    public class CallbackController : Controller
+    public class IslandController : Controller
     {
         private static Helpers.Client _client = Helpers.Client.Instance;
         private string issuer = App_Start.AppConfig.Instance.GetIssuer();
         private string jwks_uri = App_Start.AppConfig.Instance.GetJwksUri();
 
         private JObject id_token_obj;
+        private  readonly Dictionary<string, JToken> id_token_dict = new Dictionary<string, JToken>();
 
-        static readonly HttpClient client = new HttpClient();
+        private readonly HttpClient client = new HttpClient();
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             try
             {
-                string responseString = _client.GetToken(Request.QueryString["code"]);
+                string responseString = await _client.GetToken(Request.QueryString["code"]);
                 SaveDataToSession(responseString);
             }
             catch (JwtValidationException e)
@@ -55,7 +57,7 @@ namespace exampledotnetopenidconnectclient.Controllers
             return Redirect("/");
         }
 
-        public void SaveDataToSession(String curityResponse)
+        public void SaveDataToSession(string curityResponse)
         {
             JObject jsonObj = JObject.Parse(curityResponse);
 
@@ -72,9 +74,9 @@ namespace exampledotnetopenidconnectclient.Controllers
         }
 
 
-        public String SafeDecodeBase64(String str)
+        public string SafeDecodeBase64(string str)
         {
-            return System.Text.Encoding.UTF8.GetString(
+            return Encoding.UTF8.GetString(
                 getPaddedBase64String(str));
         }
 
@@ -85,25 +87,25 @@ namespace exampledotnetopenidconnectclient.Controllers
             return FromBase64String(base64);
         }
 
-        public bool IsJwtValid(String jwt)
+        public bool IsJwtValid(string jwt)
         {
             string[] jwtParts = jwt.Split('.');
 
-            String decodedHeader = SafeDecodeBase64(jwtParts[0]);
-            String decodedPayload = SafeDecodeBase64(jwtParts[1]);
+            string decodedHeader = SafeDecodeBase64(jwtParts[0]);
+            string decodedPayload = SafeDecodeBase64(jwtParts[1]);
             id_token_obj = new JObject
             {
                 {"decoded_header", decodedHeader },
                 {"decoded_payload", decodedPayload }
             };
 
-            String keyId = JObject.Parse(decodedHeader).GetValue("kid").ToString();
-            JToken keyFound = (JToken)System.Web.HttpContext.Current.Application[keyId];
+            string keyId = JObject.Parse(decodedHeader).GetValue("kid").ToString();
+            bool keyFound = id_token_dict.TryGetValue(keyId, out var key);
 
-            if (keyFound == null)
+            if (!keyFound)
             {
-                keyFound = FetchKeys(keyId);
-                if (keyFound == null)
+                key = FetchKeys(keyId);
+                if (key == null)
                 {
                     throw new JwtValidationException("Key not found in JWKS endpoint or Application State");
                 }
@@ -116,11 +118,11 @@ namespace exampledotnetopenidconnectclient.Controllers
 
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.ImportParameters(
-              new RSAParameters()
-              {
-                  Modulus = getPaddedBase64String(keyFound["n"].ToString()),
-                  Exponent = getPaddedBase64String(keyFound["e"].ToString())
-              });
+                new RSAParameters()
+                {
+                    Modulus = getPaddedBase64String(key["n"].ToString()),
+                    Exponent = getPaddedBase64String(key["e"].ToString())
+                });
 
             SHA256 sha256 = SHA256.Create();
             byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(jwtParts[0] + '.' + jwtParts[1]));
@@ -138,11 +140,10 @@ namespace exampledotnetopenidconnectclient.Controllers
             }
         }
 
-        public JToken FetchKeys(String keyId)
+        public JToken FetchKeys(string keyId)
         {
-            var jwksclient = new HttpClient();
-            jwksclient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var response = jwksclient.GetAsync(jwks_uri).Result;
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var response = client.GetAsync(jwks_uri).Result;
 
             if (response.IsSuccessStatusCode)
             {
@@ -153,9 +154,7 @@ namespace exampledotnetopenidconnectclient.Controllers
                 {
                     if (key["kid"].ToString().Equals(keyId))
                     {
-                        System.Web.HttpContext.Current.Application.Lock();
-                        System.Web.HttpContext.Current.Application[keyId] = key;
-                        System.Web.HttpContext.Current.Application.UnLock();
+                        id_token_dict.Add(keyId, key);
 
                         return key;
                     }

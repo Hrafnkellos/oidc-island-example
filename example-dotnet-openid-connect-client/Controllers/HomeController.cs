@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Mvc;
@@ -49,7 +48,7 @@ namespace exampledotnetopenidconnectclient.Controllers
         {
             try
             {
-               String responseString = _client.Refresh(Session["refresh_token"].ToString());
+                string responseString = _client.Refresh(Session["refresh_token"].ToString());
 				JObject jsonObj = JObject.Parse(responseString);
 				Session["access_token"] = jsonObj.GetValue("access_token");
 				Session["refresh_token"] = jsonObj.GetValue("refresh_token");
@@ -81,7 +80,7 @@ namespace exampledotnetopenidconnectclient.Controllers
         public ActionResult CallApi()
         {
 
-            String access_token = Session["access_token"].ToString();
+            string access_token = Session["access_token"].ToString();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
 
             var response = client.GetAsync(api_endpoint).Result;

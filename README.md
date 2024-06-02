@@ -1,3 +1,7 @@
+# Island.is OIDC Connection Example
+
+This is a fork of the Curity OIDC slightly modified to connect to the island.is authentication gateway.
+
 # OpenID Connect Demo
 
 [![Quality](https://img.shields.io/badge/quality-demo-red)](https://curity.io/resources/code-examples/status/)

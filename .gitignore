@@ -7,6 +7,8 @@
 packages/
 TestResults/
 
+.vs
+
 # globs
 Makefile.in
 *.DS_Store
@@ -16,6 +18,7 @@ Makefile.in
 *.pidb
 *.userprefs
 *.usertasks
+*.vsidx
 config.log
 config.make
 config.status
@@ -27,6 +30,7 @@ autom4te.cache/
 tarballs/
 test-results/
 Thumbs.db
+*dtbcache.json
 
 # Mac bundle stuff
 *.dmg
