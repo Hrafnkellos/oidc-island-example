@@ -42,7 +42,10 @@ namespace exampledotnetopenidconnectclient.Controllers
         {
             try
             {
-                string responseString = await _client.GetToken(Request.QueryString["code"]);
+                string code = Request.QueryString["code"];
+                string state = Request.QueryString["state"];
+                string responseString = await _client.GetToken(code, state);
+
                 SaveDataToSession(responseString);
             }
             catch (JwtValidationException e)

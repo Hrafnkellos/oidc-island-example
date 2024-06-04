@@ -20,6 +20,10 @@ Name            | Type    | Mandatory | Default  | Description
 `client_id`     | string  |    ✓      |          | The id for the client. Used to authenticate the client against the authorization server endpoint.
 `client_secret` | string  |    ✓      |          | The shared secret to use for authentication against the token endpoint.
 `scope`         | string  |           | `openid` | The scopes to ask for.
+`state`			| string  |           |          | ID to link auth request to callback
+`code_challenge`| string  |    ✓      |          | Must be sent to the Authorization endpoint, Code challenge is paired with verifier and created from hashing the verifier value.
+`code_verifier` | string  |    ✓      |          | Must be sent to the Token endpoint
+`challenge_method`| string |   ✓      |          | Must be sent to the Authorization endpoint
 `jwks_uri`      | URL     | if `issuer` is not set and the `openid` scope is requested          |          | The URL that points to the JWK set.
 `authorization_endpoint` | URL | if `issuer` is not set     |          | The URL to the authorization_endpoint.
 `token_endpoint`| URL     |    if `issuer` is not set      |          | The URL to the token_endpoint. 

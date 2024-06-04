@@ -42,7 +42,7 @@ namespace exampledotnetopenidconnectclient.Helpers
         private string response_type = "code";
         private string code_challenge_method = "S256";
         private (string code_challenge, string verifier) pkce;
-        private Dictionary<Guid, (string code_challenge, string verifier)> state_id_code_challange_map = new Dictionary<Guid, (string code_challenge, string verifier)>();
+        private Dictionary<string, (string code_challenge, string verifier)> state_id_code_challange_map = new Dictionary<string, (string code_challenge, string verifier)>();
 
         private Client()
         {
@@ -57,7 +57,7 @@ namespace exampledotnetopenidconnectclient.Helpers
             scope = _config.GetScope();
         }
 
-        public void Revoke(String refresh_token)
+        public void Revoke(string refresh_token)
         {
             var values = new Dictionary<string, string>
             {
@@ -110,7 +110,7 @@ namespace exampledotnetopenidconnectclient.Helpers
             pkce = Pkce.Generate();
             var stateId = Guid.NewGuid();
 
-            state_id_code_challange_map.Add(stateId, pkce);
+            state_id_code_challange_map.Add(stateId.ToString(), pkce);
 
             return authorization_endpoint + 
                 "?client_id=" + client_id + 
@@ -122,16 +122,17 @@ namespace exampledotnetopenidconnectclient.Helpers
                 "&code_challenge_method=" + code_challenge_method;
         }
 
-        public async Task<string> GetToken(string code)
+        public async Task<string> GetToken(string code, string state)
         {
+            bool success = state_id_code_challange_map.TryGetValue(state, out var pkce_pair);
+
             var values = new Dictionary<string, string>
             {
                 { "grant_type", "authorization_code" },
                 { "code" , code },
-                { "code_verifier" , pkce.verifier },
+                { "code_verifier" , pkce_pair.verifier },
                 { "redirect_uri", redirect_uri}
             };
-
 
             HttpClient httpClient = new HttpClient();
             var content = new FormUrlEncodedContent(values);

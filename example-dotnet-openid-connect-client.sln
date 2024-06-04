@@ -4,6 +4,11 @@ VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "example-dotnet-openid-connect-client", "example-dotnet-openid-connect-client\example-dotnet-openid-connect-client.csproj", "{EE8C3DEC-F0F2-4AE4-81A0-58359117602E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0DF75625-17F1-4A4C-90D6-C470944FAA65}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
